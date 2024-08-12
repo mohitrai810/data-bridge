@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Transfer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('uploadResult').innerText = `File uploaded! Share this code: ${data.key}`;
+                document.getElementById('fileKey').value = data.key;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('uploadResult').innerText = 'Failed to upload file.';
+            });
+        }
+
+        function downloadFile() {
+            const fileKey = document.getElementById('fileKey').value;
+            if (!fileKey) {
+                document.getElementById('downloadResult').innerText = 'Please enter the code.';
+                return;
+            }
+
+            const fileName = document.getElementById('fileName').value || 'downloaded_file';
+
+            fetch(`/download/${fileKey}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to download file.');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                document.getElementById('downloadResult').innerText = `File downloaded successfully as ${fileName}.`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('downloadResult').innerText = 'Failed to download file.';
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Data Bridge</h1>
+
+    <!-- Upload Section -->
+    <div class="container">
+        <h2>Send File</h2>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload File</button>
+        <p id="uploadResult"></p>
+    </div>
+
+    <!-- Download Section -->
+    <div class="container">
+        <h2>Receive File</h2>
+        <input type="text" id="fileKey" placeholder="Enter the code">
+        <input type="text" id="fileName" placeholder="Enter the original file name">
+        <button onclick="downloadFile()">Download File</button>
+        <p id="downloadResult"></p>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>Developed by <a href="https://www.linkedin.com/in/mohit-rai-369595224/" target="_blank" rel="noopener noreferrer"><strong>Mohit Rai</strong></a></p>
+    </footer>
+</body>
+</html>
