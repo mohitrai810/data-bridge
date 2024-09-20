@@ -38,11 +38,11 @@ def download_file(key):
         temp_file_path = os.path.join(app.config['UPLOAD_FOLDER'], key)
         with open(temp_file_path, 'wb') as f:
             f.write(response.content)
-        
-        filename = key.split('/')[-1]
-        return send_file(temp_file_path, as_attachment=True, download_name=filename)
+
+        return send_file(temp_file_path, as_attachment=True, download_name=key), 200
     else:
         return 'Failed to download file', 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
